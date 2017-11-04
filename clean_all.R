@@ -12,7 +12,7 @@ readable_names$`developer-friendly name` <- gsub(' ','_',readable_names$`develop
 
 
 #list of specific column names
-wanted_cols <- scan('colnamesweneed.txt',character())
+wanted_cols <- scan('EDA_College-Scorecard/colnamesweneed.txt',character())
 colleges <- fread('CollegeScorecard_Raw_Data/MERGED2015_16_PP.csv', select = wanted_cols ,data.table = FALSE,na.strings = c('','NULL'))
 
 #select only desired columns in readable_names
@@ -38,7 +38,7 @@ for(fn in raw_filenames){
   #read in raw data, only selecting the columns we want
   current <- fread(fn, select = wanted_cols ,data.table = FALSE,na.strings = c('','NULL'))
   
-  #check that the current data_frame has col names in the same order as readable_names, which is the same order in readable_names
+  #check that the current data.frame has col names in the same order as readable_names, which is the same order in all_data
   if(sum(colnames(current) == readable_names$`VARIABLE NAME`) == ncol(current)) print('Column names in correct order!')
   
   #add column with academic year e.g. '2015_16'
