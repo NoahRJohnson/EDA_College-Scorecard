@@ -1,0 +1,91 @@
+---
+title: "Group Project I - College Scorecard Dataset"
+author: "Kevin Hunt, Noah Johnson, Lydia Laseur, Michael McCormack"
+date: "November 4, 2017"
+output:
+  pdf_document: 
+    df_print: kable
+header-includes:
+- \usepackage{booktabs}
+urlcolor: blue
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+collegeData <- readRDS("Clean_CollegeScorecard_Rurality.rds")
+# use the completeness score when analyzing data
+completeness.by.year <- readRDS("Completeness_Clean_CollegeScorecard_Rurality.rds")
+```
+
+## College Scorecard Data Aggregation and Cleaning
+
+To view the R code for cleaning the College Scorecard Dataset, assessing the quality of the data, and adding latitude, longitude and rurality see the clean_all.R file.
+
+The we have chosen `r length(collegeData)` columns to work with:
+
+```{r, echo=FALSE, warning=FALSE, results='asis'}
+library(knitr)
+library(xtable)
+
+t1 <- kable(names(collegeData)[c(1:35)], format = "latex", booktabs = TRUE)
+t2 <- kable(names(collegeData)[c(36:70)], format = "latex", booktabs = TRUE)
+
+cat(c("\\begin{table}[!htb]
+    \\begin{minipage}{.5\\linewidth}
+      \\centering",
+        t1,
+    "\\end{minipage}%
+    \\begin{minipage}{.5\\linewidth}
+      \\centering
+        ",
+        t2,
+    "\\end{minipage} 
+\\end{table}"
+))
+
+
+t3 <- kable(names(collegeData)[c(71:103)], format = "latex", booktabs = TRUE)
+t4 <- kable(c(names(collegeData)[c(104:136)]), format = "latex", booktabs = TRUE)
+
+cat(c("\\begin{table}[!htb]
+    \\begin{minipage}{.5\\linewidth}
+      \\centering",
+        t3,
+    "\\end{minipage}%
+    \\begin{minipage}{.5\\linewidth}
+      \\centering
+        ",
+        t4,
+    "\\end{minipage} 
+\\end{table}"
+))
+```
+ 
+\pagebreak
+When analyzing the data, please keep in mind that not every year has good completeness of the data. Use completeness.by.year to explore the data before you begin visualization. Example:
+```{r}
+completeness.by.year[, c("year", "locale")]
+```
+
+## Visualizing the College Scorecard Dataset
+
+Please select a question (or come up with your own) and add some visualizations to display any relationships of interest. Most questions we came up with involved the rurality of the schools. The orginial dataset includes this information for the 2015-2016 school year in the "locale" column. For all the years, I've added a column of rurality to the dataset (original data can be found in ziprural.txt or downloaded [here]("http://www.psc.isr.umich.edu/dis/data/kb/downloads/t1101_ziprural.xls")). The dictionary for explanations of these codes is as follows: 
+\begin{center}
+\includegraphics{ruralitycodes}
+\end{center}
+
+### Questions we discussed in class:  
+**Rurality story: Where did they come from? Where did they go? Where did they come from, Cotton Eye Joe?**
+Do more rural schools show a higher percentage of returning adults than metro schools?  
+Do more rural schools have a higher percentage of first generation students?  
+How do the degrees awarded differ between rurality classes (do rural areas award more technical degrees)?   
+Are more rural schools cheaper?  
+
+**Other Questions** 
+How does the average faculty salary of a school scale with the cost of living in that area? (requires finding cost of living)  
+Dangerous schools/regions with the death statistics  
+ 
+
+
+
+
