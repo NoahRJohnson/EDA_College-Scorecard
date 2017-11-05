@@ -86,6 +86,9 @@ saveRDS(all_data, file="CollegeScorecard_Rurality.rds")
 all_data <- readRDS("CollegeScorecard_Rurality.rds")
 
 # Completeness checks
+# replace "PrivacySuppressed" with NA
+all_data[all_data == "PrivacySuppressed"] <- NA
+
 # count nulls based on year
 library(doBy)
 # how many rows per year
