@@ -15,20 +15,22 @@ knitr::opts_chunk$set(echo = TRUE)
 collegeData <- readRDS("Clean_CollegeScorecard_Rurality.rds")
 # use the completeness score when analyzing data
 completeness.by.year <- readRDS("Completeness_Clean_CollegeScorecard_Rurality.rds")
+attach(collegeData)
 ```
 
 ## College Scorecard Data Aggregation and Cleaning
 
+#Replace PrivacySuppressed
 To view the R code for cleaning the College Scorecard Dataset, assessing the quality of the data, and adding latitude, longitude and rurality see the clean_all.R file.
 
-The we have chosen `r length(collegeData)` columns to work with:
+We have chosen `r length(collegeData)` columns to work with:
 
 ```{r, echo=FALSE, warning=FALSE, results='asis'}
 library(knitr)
 library(xtable)
 
-t1 <- kable(names(collegeData)[c(1:35)], format = "latex", booktabs = TRUE)
-t2 <- kable(names(collegeData)[c(36:70)], format = "latex", booktabs = TRUE)
+t1 <- kable(names(collegeData)[c(1:33)], format = "latex", booktabs = TRUE)
+t2 <- kable(c(names(collegeData)[c(34:65)], " "), format = "latex", booktabs = TRUE)
 
 cat(c("\\begin{table}[!htb]
     \\begin{minipage}{.5\\linewidth}
@@ -43,22 +45,6 @@ cat(c("\\begin{table}[!htb]
 \\end{table}"
 ))
 
-
-t3 <- kable(names(collegeData)[c(71:103)], format = "latex", booktabs = TRUE)
-t4 <- kable(c(names(collegeData)[c(104:136)]), format = "latex", booktabs = TRUE)
-
-cat(c("\\begin{table}[!htb]
-    \\begin{minipage}{.5\\linewidth}
-      \\centering",
-        t3,
-    "\\end{minipage}%
-    \\begin{minipage}{.5\\linewidth}
-      \\centering
-        ",
-        t4,
-    "\\end{minipage} 
-\\end{table}"
-))
 ```
  
 \pagebreak
@@ -75,7 +61,7 @@ Please select a question (or come up with your own) and add some visualizations 
 \end{center}
 
 ### Questions we discussed in class:  
-**Rurality story: Where did they come from? Where did they go? Where did they come from, Cotton Eye Joe?**
+**Rurality story: Where did they come from? Where did they go? Where did they come from, Cotton Eye Joe?**  
 Do more rural schools show a higher percentage of returning adults than metro schools?  
 Do more rural schools have a higher percentage of first generation students?  
 How do the degrees awarded differ between rurality classes (do rural areas award more technical degrees)?   
@@ -83,8 +69,33 @@ Are more rural schools cheaper?
 
 **Other Questions** 
 How does the average faculty salary of a school scale with the cost of living in that area? (requires finding cost of living)  
-Dangerous schools/regions with the death statistics  
+We can also ask some summary statistics of schools grouping by year: what has changed for schools in 20  years?
+
+After digging through the data below, I'm not sure rurality is the best measure to look for differences in degrees awarded (9 the most rural has the highest percentage of history degrees?). Perhaps poverty levels would be more interesting.
+
+I just threw together some simple ggplots, feel free to continue exploring anything that jumps out at you. I am by no means claiming all these for myself.
  
+```{r}
+library(ggplot2)
+ggplot(collegeData[collegeData$year == "2015_16",], aes(x=factor(rurality), y=program_percentage.agriculture)) + stat_summary(fun.y="mean", geom = "bar")
+ggplot(collegeData[collegeData$year == "2015_16",], aes(x=factor(rurality), y=program_percentage.ethnic_cultural_gender)) + stat_summary(fun.y="mean", geom = "bar")
+ggplot(collegeData[collegeData$year == "2015_16",], aes(x=factor(rurality), y=program_percentage.mechanic_repair_technology)) + stat_summary(fun.y="mean", geom = "bar")
+ggplot(collegeData[collegeData$year == "2015_16",], aes(x=factor(rurality), y=faculty_salary)) + stat_summary(fun.y="mean", geom = "bar")
+
+# Looks like metro areas have more return adults
+ggplot(collegeData[collegeData$year == "2015_16",], aes(x=factor(rurality), y=share_25_older)) + stat_summary(fun.y="mean", geom = "bar")
+ggplot(collegeData[collegeData$year == "2005_06",], aes(x=factor(rurality), y=demographics.over_23_at_entry)) + stat_summary(fun.y="mean", geom = "bar")
+# But average age remains in the 20s across ruralities
+ggplot(collegeData[collegeData$year == "2015_16",], aes(x=factor(rurality), y=demographics.age_entry)) + stat_summary(fun.y="mean", geom = "bar")
+
+ggplot(collegeData[collegeData$year == "2015_16",], aes(x=factor(rurality), y=share_firstgeneration)) + stat_summary(fun.y="mean", geom = "bar")
+ggplot(collegeData[collegeData$year == "2015_16",], aes(x=factor(rurality), y=share_firstgeneration_parents.middleschool)) + stat_summary(fun.y="mean", geom = "bar")
+ggplot(collegeData[collegeData$year == "2015_16",], aes(x=factor(rurality), y=demographics.first_generation)) + stat_summary(fun.y="mean", geom = "bar")
+ggplot(collegeData[collegeData$year == "2015_16",], aes(x=factor(rurality), y=degrees_awarded.highest)) + stat_summary(fun.y="mean", geom = "bar")
+ggplot(collegeData[collegeData$year == "2015_16",], aes(x=factor(rurality), y=tuition.out_of_state)) + stat_summary(fun.y="mean", geom = "bar")
+ggplot(collegeData[collegeData$year == "2015_16",], aes(x=factor(rurality), y=tuition.in_state)) + stat_summary(fun.y="mean", geom = "bar")
+ggplot(collegeData[collegeData$year == "2015_16",], aes(x=factor(rurality), y=attendance.academic_year)) + stat_summary(fun.y="mean", geom = "bar")
+```
 
 
 
