@@ -107,6 +107,14 @@ bad_cols <- names(which(colSums(bool.complete.by.year)==0))
 good_cols <- names(all_data)[!(names(all_data) %in% bad_cols)]
 cleaned_data <- as.data.frame(all_data)[,good_cols]
 
+# convert character columns to numer where necessary
+cleaned_data <- transform(cleaned_data, share_firstgeneration = as.numeric(share_firstgeneration),
+                        share_firstgeneration_parents.highschool = as.numeric(share_firstgeneration_parents.highschool),
+                        share_firstgeneration_parents.middleschool = as.numeric(share_firstgeneration_parents.middleschool),
+                        share_firstgeneration_parents.somecollege = as.numeric(share_firstgeneration_parents.somecollege),
+                        demographics.age_entry = as.numeric(demographics.age_entry),
+                        demographics.over_23_at_entry = as.numeric(demographics.over_23_at_entry),
+                        demographics.first_generation = as.numeric(demographics.first_generation))
 # save data
 setwd('/home/kevinisagirl/Desktop/workspace/datamunging/Project/EDA_College-Scorecard/')
 saveRDS(cleaned_data, file="Clean_CollegeScorecard_Rurality.rds")
