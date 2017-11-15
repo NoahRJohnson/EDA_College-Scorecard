@@ -4,6 +4,13 @@ library(dplyr)
 library(gdata)
 # can clean zipcodes from ints to proper zips (missing leading 0's) also has lat and lng for zips
 library(zipcode)
+library(ggplot2)
+library(ggmap)
+library(RColorBrewer)
+# count nulls based on year
+library(doBy)
+library(magrittr)
+library(dplyr)
 
 
 setwd('/Users/Mike/Desktop/')
@@ -58,8 +65,6 @@ setwd('/Users/Mike/Desktop/Datasets')
 saveRDS(all_data, file="CollegeScorecard_combinedyears.rds")
 all_data <- readRDS("CollegeScorecard_combinedyears.rds")
 
-#add missing lat and longs based on zips
-
 #clean College data zipcodes - some have trailing 4 digits
 all_data$zip <-sapply(all_data$zip, function(x) substr(x, 1, 5))
 
@@ -72,14 +77,6 @@ all_data1 <- zipcode[match(all_data$zip, zipcode$zip), ll]
 points <- all_data[nm]
 
 
-
-library(ggplot2)
-library(ggmap)
-library(RColorBrewer)
-# count nulls based on year
-library(doBy)
-library(magrittr)
-library(dplyr)
 # how many rows per year
 yearcounts <- c(unname(table(all_data$year)))
 # count how many na's in each column for each year
@@ -106,27 +103,19 @@ cleaned_data <- transform(cleaned_data, share_firstgeneration = as.numeric(share
                           demographics.first_generation = as.numeric(demographics.first_generation))
 
 
-
+###Have to run ggmap on the counsel due to 
+#8: geocode failed with status OVER_QUERY_LIMIT, location = "united states"  issue
 map<-get_map(location='united states', zoom=4, maptype = "terrain",
                    source='google',color='color')
 
 YlOrBr <- c("#FFFFD4", "#FED98E", "#FE9929", "#D95F0E", "#993404")
 
 
-ggmap(map) + geom_density(data=all_data1, aes(x=all_data1$longitude, y=all_data1$latitude, fill=..level.., alpha=..level..),
-               geom="polygon", size=0.01, bins=16) +
-  scale_fill_gradient(low="red", high="green") +
-  scale_alpha(range = c(0,0.1), guide=FALSE)
-
 ggmap(map) + geom_point(
   aes(x=all_data1$longitude, y=all_data1$latitude), colour = "red", 
   data=all_data1, alpha=.5, na.rm = T) + labs(title = "Location of Colleges") + ggsave("Location_of_College.pdf")
 
 
-ggplot(all_data1, aes(x = all_data1$longitude, y = all_data1$latitude)) + 
-  geom_point() + ggmap(map)
-  stat_density2d(aes(fill=..density..), geom = "tile", contour = FALSE) + ggmap()
-  scale_fill_gradient2(low = "white", high = "red")
 
 ggplot(data = cleaned_data, aes(faculty_salary,program_percentage.science_technology)) + geom_point() + labs(title = "Percentage of Science and Tech Programs vs Faculty Salary")
 + ggsave("Tech Programs vs Faculty Salary.pdf")
@@ -142,12 +131,14 @@ ggplot(data = cleaned_data, aes(x=faculty_salary)) +
   ylab("Program Percentages") + 
   ggsave("Multiple Program Percentages vs Faculty Salary.pdf")
   
+ggplot(all_data, aes(all_data$state)) + geom_bar(fill = "blue", position = position_stack(reverse = TRUE))  + xlab("State") + labs(title="Number of colleges per State")+ ggsave("Number of Colleges per State.pdf")
 
-jpeg('location_of_college')
 
-g <- ggplot(clean)
+new <- subset(college, select = c(state,rurality))
+new[is.na(new)] <- 0
+z <- ddply(new, .(state), summarize, rural = mean(rurality))
+ggplot(z, aes(z$state,z$rural)) + geom_point() + ggsave("Average Rural Score per State.pdf")
 
-saveRDS(location_of_college, file = "Plotted College Locatiob.rds")
 
 # add rurality
 all_data$rurality <- NA
@@ -160,55 +151,8 @@ tsn <- "rurality"
 zcrdn <- "ru2003"
 all_data[tsn] <- zipcoderuralitydata[match(all_data$zip, zipcoderuralitydata$zip), zcrdn]
 
-# save state for continuation
-setwd('/Users/Mike/Desktop/Datasets')
-saveRDS(all_data, file="CollegeScorecard_Rurality.rds")
-all_data <- readRDS("CollegeScorecard_Rurality.rds")
-
-# Completeness checks
-# replace "PrivacySuppressed" with NA
-all_data[all_data == "PrivacySuppressed"] <- NA
-
-
-g <- ggplot(cleaned_data, aes(cleaned_data$state, cleaned_data$faculty_salary))
-
-ggplot(collegeData, aes(cleaned_data$state)) + geom_bar(fill = "blue", position = position_stack(reverse = TRUE))  + xlab("State") + labs(title="Number of colleges per State")+ ggsave("Number of Colleges per State.pdf")
-
-
-a <- aggregate(cleaned_data, list(state = cleaned_data$state), mean)
-
-group_by(cleaned_data, state) %>% summarise_all(funs(mean(., na.rm = TRUE)), cleaned_data$faculty_salary)
-
-library(plyr)
-new <- subset(collegeData, select = c(state,rurality))
+new <- subset(colleges, select = c(state,rurality))
 new[is.na(new)] <- 0
 z <- ddply(new, .(state), summarize, rural = mean(rurality))
 ggplot(z, aes(z$state,z$rural)) + geom_point() + ggsave("Average Rural Score per State.pdf")
-
-barplot(z)
-
-rurality_state <- collegeData$
-
-cleaned_data$
-
-# save data
-setwd('/Users/Mike/Desktop/EDA_College-Scorecard')
-saveRDS(cleaned_data, file="Clean_CollegeScorecard_Rurality.rds")
-cleaned_data <- readRDS("Clean_CollegeScorecard_Rurality.rds")
-
-# create new completeness table for use in data analysis
-yearcounts <- c(unname(table(cleaned_data$year)))
-nacount <- all_data %>%
-  group_by(year) %>%
-  summarise_each(funs(sum(is.na(.))))
-
-# get a score for each column for each year
-# use this to help when analyzing data
-# note, we have College Scorecard Locale for 2015_16
-completeness.by.year <- cbind(year = nacount$year, 1-nacount[,-c(1)]/yearcounts, stringsAsFactors=FALSE)
-# save data
-#setwd('/Users/Mike/Desktop/Datasets')
-#saveRDS(completeness.by.year, file="Completeness_Clean_CollegeScorecard_Rurality.rds")
-#completeness.by.year <- readRDS("Completeness_Clean_CollegeScorecard_Rurality.rds")
-
 
